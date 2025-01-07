@@ -14,6 +14,25 @@ function generateRandomString(length) {
     return result;
 }
 
+const translation = {
+    'ZH': [
+        'TOKEN 无效', // ZH[0]
+        '缺少必要参数: url', // ZH[1]
+        '参数格式无效: url', // ZH[2]
+        '参数长度无效: slug, (>= 2 && <= 10), 或者以后缀名结尾', // ZH[3]
+        '不可缩短本域名的网址', // ZH[4]
+        'Slug 已经存在' // ZH[5]
+    ],
+    'EN': [
+        'Invalid TOKEN', // EN[0]
+        'Missing required parameter: url', //EN[1]
+        'Illegal format: url', //EN[2]
+        'Illegal length: slug, (>= 2 && <= 10), or not ending with a file extension', //EN[3]
+        'You cannot shorten a link to the same domain', //EN[4]
+        'Slug already exists' //EN[5]
+    ]
+};
+
 
 export async function onRequest(context) {
     if (context.request.method === 'OPTIONS') {
@@ -44,16 +63,23 @@ export async function onRequest(context) {
     };
     const timedata = new Date();
     const formattedDate = new Intl.DateTimeFormat('en-US', options).format(timedata);
-    const { url, slug, token } = await request.json();
+    const { url, slug, token, lang } = await request.json();
     const corsHeaders = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type',
         'Access-Control-Max-Age': '86400',
     };
+    let msgString = [];
+
+    if ( lang === 'ZH') {
+        msgString = translation.ZH;
+    } else {
+        msgString = translation.EN;
+    }
 
     // Check token
     if (!token || token !== env.ACCESS_TOKEN) {
-        return Response.json({ message: 'TOKEN 无效' }, {
+        return Response.json({ message: msgString[0] }, {
             headers: corsHeaders,
             status: 403
         });
