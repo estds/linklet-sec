@@ -133,8 +133,8 @@ export async function onRequest(context) {
             });
         }
 
-        // Generate or use provided slug
-        const finalSlug = slug || generateRandomString(4);
+        // Generate or use provided slug, change slug length here
+        const finalSlug = slug || generateRandomString(6);
 
         // Insert new link
         const insertStmt = await env.DB.prepare(`
