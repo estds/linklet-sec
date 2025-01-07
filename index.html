@@ -207,6 +207,7 @@
     <main x-data="app" x-cloak>
       <p x-show.transition.opacity="alert" :class="alert?.type" x-text="alert?.message"></p>
       <input placeholder="输入要缩短的网址..." x-model="url" x-ref="url" />
+      <input type="password" placeholder="输入密码..." x-model="password" />
       <details>
         <summary>自定义设置</summary>
         <div>
@@ -224,6 +225,7 @@
       const app = {
         url: '',
         slug: '',
+        password: '',
         alert: null,
         loading: false,
         isValidated () {
@@ -234,18 +236,26 @@
             this.alert = { type: 'error', message: '缺少必需的参数：url。' }
             return
           }
-
+  
+          if (!this.password) {
+            this.alert = { type: 'error', message: '请输入密码。' }
+            return
+          }
+  
           if (this.isValidated()) {
             this.alert = { type: 'error', message: '非法格式：url。' }
             return
           }
-
+  
           this.alert = null
           this.loading = true
-
-          const body = { url: this.url }
+  
+          const body = { 
+            url: this.url,
+            password: this.password
+          }
           if (this.slug) body.slug = this.slug
-
+  
           fetch('/create', {
             method: 'post',
             headers: { 'content-type': 'application/json' },
@@ -258,9 +268,9 @@
                 this.alert = { type: 'error', message: res.message }
                 return
               }
-
+  
               this.url = res.link
-
+  
               $nextTick(() => {
                 $refs.url.select()
                 this.alert = { type: 'success', message: `链接 ${document.execCommand('Copy') ? '复制' : '生成'} ` }
@@ -274,4 +284,5 @@
       }
     </script>
   </body>
+
 </html>

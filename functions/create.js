@@ -16,6 +16,8 @@ function generateRandomString(length) {
     return result;
 }
 
+
+
 export async function onRequest(context) {
     if (context.request.method === 'OPTIONS') {
         return new Response(null, {
@@ -23,11 +25,11 @@ export async function onRequest(context) {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'POST, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type',
-                'Access-Control-Max-Age': '86400', // 24小时
+                'Access-Control-Max-Age': '86400',
             },
         });
     }
-// export async function onRequestPost(context) {
+
     const { request, env } = context;
     const originurl = new URL(request.url);
     const clientIP = request.headers.get("x-forwarded-for") || request.headers.get("clientIP");
@@ -46,12 +48,21 @@ export async function onRequest(context) {
     };
     const timedata = new Date();
     const formattedDate = new Intl.DateTimeFormat('zh-CN', options).format(timedata);
-    const { url, slug } = await request.json();
+    const { url, slug, password } = await request.json();
     const corsHeaders = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Max-Age': '86400', // 24 hours
+        'Access-Control-Max-Age': '86400',
     };
+
+    // Check password
+    if (!password || password !== env.ACCESS_PASSWORD) {
+        return Response.json({ message: '密码错误。' }, {
+            headers: corsHeaders,
+            status: 403
+        });
+    }
+
     if (!url) return Response.json({ message: 'Missing required parameter: url.' });
 
     // url格式检查
@@ -70,9 +81,6 @@ export async function onRequest(context) {
         
         });
     }
-
-
-
 
     try {
 
@@ -135,8 +143,6 @@ export async function onRequest(context) {
             status: 500
         })
     }
-
-
 
 }
 
