@@ -14,6 +14,7 @@ function generateRandomString(length) {
     return result;
 }
 
+
 export async function onRequest(context) {
     if (context.request.method === 'OPTIONS') {
         return new Response(null, {
@@ -33,26 +34,33 @@ export async function onRequest(context) {
     const origin = `${originurl.protocol}//${originurl.hostname}`
 
     const options = {
-        timeZone: 'Asia/Shanghai',
+        timeZone: 'UTC',
         year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour12: false,
+        month: '2-digit',
+        day: '2-digit',
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit'
     };
     const timedata = new Date();
-    const formattedDate = new Intl.DateTimeFormat('zh-CN', options).format(timedata);
-    
+    const formattedDate = new Intl.DateTimeFormat('en-US', options).format(timedata);
+    const { url, slug, token } = await request.json();
     const corsHeaders = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type',
         'Access-Control-Max-Age': '86400',
     };
 
+    // Check token
+    if (!token || token !== env.ACCESS_TOKEN) {
+        return Response.json({ message: 'TOKEN 无效' }, {
+            headers: corsHeaders,
+            status: 403
+        });
+    }
+
     try {
-        const { url, slug } = await request.json();
+        //const { url, slug } = await request.json();
 
         if (!url) {
             return Response.json({ 

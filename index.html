@@ -207,7 +207,7 @@
     <main x-data="app" x-cloak>
       <p x-show.transition.opacity="alert" :class="alert?.type" x-text="alert?.message"></p>
       <input placeholder="输入要缩短的网址..." x-model="url" x-ref="url" />
-      <input type="password" placeholder="输入密码..." x-model="password" />
+      <input type="password" placeholder="输入Token..." x-model="password" />
       <details>
         <summary>自定义设置</summary>
         <div>
@@ -225,7 +225,7 @@
       const app = {
         url: '',
         slug: '',
-        password: '',
+        token: '',
         alert: null,
         loading: false,
         isValidated () {
@@ -237,8 +237,8 @@
             return
           }
   
-          if (!this.password) {
-            this.alert = { type: 'error', message: '请输入密码。' }
+          if (!this.token) {
+            this.alert = { type: 'error', message: '请输入Token。' }
             return
           }
   
@@ -252,7 +252,7 @@
   
           const body = { 
             url: this.url,
-            password: this.password
+            token: this.token
           }
           if (this.slug) body.slug = this.slug
   
