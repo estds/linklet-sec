@@ -90,7 +90,7 @@ export async function onRequest(context) {
 
         if (!url) {
             return Response.json({ 
-                message: 'Missing required parameter: url.' 
+                message: msgString[1] 
             }, {
                 headers: corsHeaders,
                 status: 400
@@ -100,7 +100,7 @@ export async function onRequest(context) {
         // URL format check
         if (!/^https?:\/\/.{3,}/.test(url)) {
             return Response.json({ 
-                message: 'Illegal format: url.' 
+                message: msgString[2]
             }, {
                 headers: corsHeaders,
                 status: 400
@@ -110,7 +110,7 @@ export async function onRequest(context) {
         // Custom slug length check
         if (slug && (slug.length < 2 || slug.length > 10 || /.+\.[a-zA-Z]+$/.test(slug))) {
             return Response.json({ 
-                message: 'Illegal length: slug, (>= 2 && <= 10), or not ending with a file extension.' 
+                message: msgString[3]
             }, {
                 headers: corsHeaders,
                 status: 400
@@ -121,7 +121,7 @@ export async function onRequest(context) {
         const bodyUrl = new URL(url);
         if (bodyUrl.hostname === originurl.hostname) {
             return Response.json({ 
-                message: 'You cannot shorten a link to the same domain.' 
+                message: msgString[4]
             }, {
                 headers: corsHeaders,
                 status: 400
@@ -146,7 +146,7 @@ export async function onRequest(context) {
             // Slug already exists
             if (existUrl) {
                 return Response.json({ 
-                    message: 'Slug already exists.' 
+                    message: msgString[5]
                 }, {
                     headers: corsHeaders
                 });
