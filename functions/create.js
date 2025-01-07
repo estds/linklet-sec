@@ -2,8 +2,6 @@
  * @api {post} /create Create
  */
 
-// Path: functions/create.js
-
 function generateRandomString(length) {
     const characters = '1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     let result = '';
@@ -15,8 +13,6 @@ function generateRandomString(length) {
 
     return result;
 }
-
-
 
 export async function onRequest(context) {
     if (context.request.method === 'OPTIONS') {
@@ -48,103 +44,119 @@ export async function onRequest(context) {
     };
     const timedata = new Date();
     const formattedDate = new Intl.DateTimeFormat('zh-CN', options).format(timedata);
-    const { url, slug, password } = await request.json();
+    
     const corsHeaders = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type',
         'Access-Control-Max-Age': '86400',
     };
 
-    // Check password
-    if (!password || password !== env.ACCESS_PASSWORD) {
-        return Response.json({ message: '密码错误。' }, {
-            headers: corsHeaders,
-            status: 403
-        });
-    }
-
-    if (!url) return Response.json({ message: 'Missing required parameter: url.' });
-
-    // url格式检查
-    if (!/^https?:\/\/.{3,}/.test(url)) {
-        return Response.json({ message: 'Illegal format: url.' },{
-            headers: corsHeaders,
-            status: 400
-        })
-    }
-
-    // 自定义slug长度检查 2<slug<10 是否不以文件后缀结尾
-    if (slug && (slug.length < 2 || slug.length > 10 || /.+\.[a-zA-Z]+$/.test(slug))) {
-        return Response.json({ message: 'Illegal length: slug, (>= 2 && <= 10), or not ending with a file extension.' },{
-            headers: corsHeaders,
-            status: 400
-        
-        });
-    }
-
     try {
+        const { url, slug } = await request.json();
 
-        // 如果自定义slug
-        if (slug) {
-            const existUrl = await env.DB.prepare(`SELECT url as existUrl FROM links where slug = '${slug}'`).first()
-
-            // url & slug 是一样的。
-            if (existUrl && existUrl.existUrl === url) {
-                return Response.json({ slug, link: `${origin}/${slug2}` },{
-                    headers: corsHeaders,
-                    status: 200
-                })
-            }
-
-            // slug 已存在
-            if (existUrl) {
-                return Response.json({ message: 'Slug already exists.' },{
-                    headers: corsHeaders,
-                    status: 200  
-                })
-            }
-        }
-
-        // 目标 url 已存在
-        const existSlug = await env.DB.prepare(`SELECT slug as existSlug FROM links where url = '${url}'`).first()
-
-        // url 存在且没有自定义 slug
-        if (existSlug && !slug) {
-            return Response.json({ slug: existSlug.existSlug, link: `${origin}/${existSlug.existSlug}` },{
-                headers: corsHeaders,
-                status: 200
-            
-            })
-        }
-        const bodyUrl = new URL(url);
-
-        if (bodyUrl.hostname === originurl.hostname) {
-            return Response.json({ message: 'You cannot shorten a link to the same domain.' }, {
+        if (!url) {
+            return Response.json({ 
+                message: 'Missing required parameter: url.' 
+            }, {
                 headers: corsHeaders,
                 status: 400
-            })
+            });
         }
 
-        // 生成随机slug
-        const slug2 = slug ? slug : generateRandomString(4);
-        // console.log('slug', slug2);
+        // URL format check
+        if (!/^https?:\/\/.{3,}/.test(url)) {
+            return Response.json({ 
+                message: 'Illegal format: url.' 
+            }, {
+                headers: corsHeaders,
+                status: 400
+            });
+        }
 
-        const info = await env.DB.prepare(`INSERT INTO links (url, slug, ip, status, ua, create_time) 
-        VALUES ('${url}', '${slug2}', '${clientIP}',1, '${userAgent}', '${formattedDate}')`).run()
+        // Custom slug length check
+        if (slug && (slug.length < 2 || slug.length > 10 || /.+\.[a-zA-Z]+$/.test(slug))) {
+            return Response.json({ 
+                message: 'Illegal length: slug, (>= 2 && <= 10), or not ending with a file extension.' 
+            }, {
+                headers: corsHeaders,
+                status: 400
+            });
+        }
 
-        return Response.json({ slug: slug2, link: `${origin}/${slug2}` },{
-            headers: corsHeaders,
-            status: 200
-        })
-    } catch (e) {
-        // console.log(e);
-        return Response.json({ message: e.message },{
+        // Check for self-referencing URLs
+        const bodyUrl = new URL(url);
+        if (bodyUrl.hostname === originurl.hostname) {
+            return Response.json({ 
+                message: 'You cannot shorten a link to the same domain.' 
+            }, {
+                headers: corsHeaders,
+                status: 400
+            });
+        }
+
+        // If custom slug provided
+        if (slug) {
+            const stmt = await env.DB.prepare('SELECT url as existUrl FROM links WHERE slug = ?');
+            const existUrl = await stmt.bind(slug).first();
+
+            // Same URL & slug combination
+            if (existUrl && existUrl.existUrl === url) {
+                return Response.json({ 
+                    slug, 
+                    link: `${origin}/${slug}` 
+                }, {
+                    headers: corsHeaders
+                });
+            }
+
+            // Slug already exists
+            if (existUrl) {
+                return Response.json({ 
+                    message: 'Slug already exists.' 
+                }, {
+                    headers: corsHeaders
+                });
+            }
+        }
+
+        // Check if URL already exists
+        const stmt = await env.DB.prepare('SELECT slug as existSlug FROM links WHERE url = ?');
+        const existSlug = await stmt.bind(url).first();
+
+        // URL exists and no custom slug requested
+        if (existSlug && !slug) {
+            return Response.json({ 
+                slug: existSlug.existSlug, 
+                link: `${origin}/${existSlug.existSlug}` 
+            }, {
+                headers: corsHeaders
+            });
+        }
+
+        // Generate or use provided slug
+        const finalSlug = slug || generateRandomString(4);
+
+        // Insert new link
+        const insertStmt = await env.DB.prepare(`
+            INSERT INTO links (url, slug, ip, status, ua, create_time) 
+            VALUES (?, ?, ?, ?, ?, ?)
+        `);
+        await insertStmt.bind(url, finalSlug, clientIP, 1, userAgent, formattedDate).run();
+
+        return Response.json({ 
+            slug: finalSlug, 
+            link: `${origin}/${finalSlug}` 
+        }, {
+            headers: corsHeaders
+        });
+
+    } catch (error) {
+        console.error('Error:', error);
+        return Response.json({ 
+            message: 'Internal server error.' 
+        }, {
             headers: corsHeaders,
             status: 500
-        })
+        });
     }
-
 }
-
-
-
