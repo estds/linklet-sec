@@ -74,7 +74,7 @@ export async function onRequest(context) {
     if ( lang === 'ZH') {
         msgString = translation.ZH;
     } else {
-        msgString = translation.EN;
+        msgString = translation.ZH;
     }
 
     // Check token
