@@ -233,17 +233,17 @@
         },
         submit ($refs, $nextTick) {
           if (!this.url) {
-            this.alert = { type: 'error', message: '缺少必需的参数：url。' }
+            this.alert = { type: 'error', message: '缺少必需的参数：url' }
             return
           }
   
           if (!this.token) {
-            this.alert = { type: 'error', message: '请输入Token。' }
+            this.alert = { type: 'error', message: '请输入Token' }
             return
           }
   
           if (this.isValidated()) {
-            this.alert = { type: 'error', message: '非法格式：url。' }
+            this.alert = { type: 'error', message: '非法格式：url' }
             return
           }
   
@@ -273,7 +273,7 @@
   
               $nextTick(() => {
                 $refs.url.select()
-                this.alert = { type: 'success', message: `链接 ${document.execCommand('Copy') ? '复制' : '生成'} ` }
+                this.alert = { type: 'success', message: `链接${document.execCommand('Copy') ? '已复制到剪贴板' : '已生成'} ` }
               })
             })
             .catch(e => {
