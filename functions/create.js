@@ -40,7 +40,7 @@ export async function onRequest(context) {
             headers: {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'POST, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key',
                 'Access-Control-Max-Age': '86400',
             },
         });
@@ -63,22 +63,39 @@ export async function onRequest(context) {
     };
     const timedata = new Date();
     const formattedDate = new Intl.DateTimeFormat('en-US', options).format(timedata);
-    const { url, slug, token, lang } = await request.json();
+    
     const corsHeaders = {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key',
         'Access-Control-Max-Age': '86400',
     };
+    
+    // Get API key from header
+    const apiKey = request.headers.get('Authorization') || request.headers.get('X-API-Key');
+    
+    let requestData;
+    try {
+        requestData = await request.json();
+    } catch (error) {
+        return Response.json({ 
+            message: 'Invalid JSON body'
+        }, {
+            headers: corsHeaders,
+            status: 400
+        });
+    }
+    
+    const { url, slug, lang } = requestData;
     let msgString = [];
 
-    if ( lang === 'ZH') {
+    if (lang === 'ZH') {
         msgString = translation.ZH;
     } else {
-        msgString = translation.ZH;
+        msgString = translation.EN;
     }
 
-    // Check token
-    if (!token || token !== env.ACCESS_TOKEN) {
+    // Check API key
+    if (!apiKey || apiKey !== env.ACCESS_TOKEN) {
         return Response.json({ message: msgString[0] }, {
             headers: corsHeaders,
             status: 403
@@ -86,8 +103,6 @@ export async function onRequest(context) {
     }
 
     try {
-        //const { url, slug } = await request.json();
-
         if (!url) {
             return Response.json({ 
                 message: msgString[1] 
