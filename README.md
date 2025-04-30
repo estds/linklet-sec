@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS logs (
 
 ```http
 ### 生成随机短链接
-POST https://linklet.pages.dev/create
+POST https://linklet-sec.pages.dev/create
 Content-Type: application/json
 Authorization: <ACCESS_TOKEN>
 
@@ -67,7 +67,7 @@ Authorization: <ACCESS_TOKEN>
 }
 
 ### 生成指定 slug 短链接
-POST https://linklet.pages.dev/create
+POST https://linklet-sec.pages.dev/create
 Content-Type: application/json
 Authorization: <ACCESS_TOKEN>
 {
@@ -82,6 +82,6 @@ Authorization: <ACCESS_TOKEN>
 ```json
 {
   "slug": "<slug>",
-  "link": "http://linklet.pages.dev/<slug>"
+  "link": "http://linklet-sec.pages.dev/<slug>"
 }
 ```
