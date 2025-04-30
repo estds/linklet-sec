@@ -207,7 +207,7 @@
     <main x-data="app" x-cloak>
       <p x-show.transition.opacity="alert" :class="alert?.type" x-text="alert?.message"></p>
       <input placeholder="输入要缩短的网址..." x-model="url" x-ref="url" />
-      <input type="password" placeholder="输入API Key..." x-model="apiKey" />
+      <input type="password" placeholder="输入Access Token..." x-model="apiKey" />
       <details>
         <summary>自定义设置</summary>
         <div>
@@ -237,7 +237,7 @@
           }
   
           if (!this.apiKey) {
-            this.alert = { type: 'error', message: '请输入API Key' }
+            this.alert = { type: 'error', message: '请输入Access Token' }
             return
           }
   
