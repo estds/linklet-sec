@@ -1,16 +1,23 @@
 ## 介绍
 
-一个使用 Cloudflare Pages 创建的 URL 缩短器
+一个使用 Cloudflare Pages 创建的 URL 缩短器，基于[HarrisonWang/linklet](https://github.com/HarrisonWang/linklet)修改。
 
-*演示站点* : [linklet.pages.dev](https://linklet.pages.dev)
+*主要修改* :
+
+- 增加`ACCESS_TOKEN`防止滥用
+- 修改SQL query方法中潜在的安全问题
+
+
+
+*演示站点* : [linklet-sec.pages.dev](https://linklet-sec.pages.dev)
 
 ### 1.利用 Cloudflare Pages 部署
 
-1. Fork [linklet 仓库](https://github.com/HarrisonWang/linklet.git)。
+1. Fork本仓库。
 2. 登录到 [Cloudflare](https://dash.cloudflare.com) 控制台。
 3. 在 Cloudflare 控制台，选择 <kbd>Workers & Pages</kbd> > <kbd>Create application</kbd> > <kbd>Pages</kbd> > <kbd>Connect to Git</kbd>。
 4. 选择 Fork 的仓库，若没有该仓库，请点击 [Cloudflare Pages 链接](https://github.com/settings/installations/46795069)配置 Cloudflare 访问个人的 GitHub 仓库权限。
-5. 选中 Fork 的仓库，点击<kbd>Begin setup</kbd>完成部署。
+5. 选中 Fork 的仓库，点击<kbd>Begin setup</kbd>，在<kbd>Environment variables (advanced)</kbd>中增加<kbd>ACCESS_TOKEN</kbd>，填写密钥，完成部署。
 6. 在 Cloudflare 控制台创建 D1 数据库，依次点击 <kbd>Workers & Pages</kbd> > <kbd>D1</kbd> > <kbd>Create database</kbd> > <kbd>Dashboard</kbd>，输入 Database name 点击 <kbd>Create</kbd> 完成数据库的创建。
 7. 点击 <kbd>Console</kbd>，输入以下 SQL 命令创建表：
 
@@ -53,6 +60,7 @@ CREATE TABLE IF NOT EXISTS logs (
 ### 生成随机短链接
 POST https://linklet.pages.dev/create
 Content-Type: application/json
+Authorization: <ACCESS_TOKEN>
 
 {
   "url": "https://ollama.com/blog/how-to-prompt-code-llama"
@@ -61,7 +69,7 @@ Content-Type: application/json
 ### 生成指定 slug 短链接
 POST https://linklet.pages.dev/create
 Content-Type: application/json
-
+Authorization: <ACCESS_TOKEN>
 {
   "url": "https://ollama.com/blog/how-to-prompt-code-llama",
   "slug": "llama"
