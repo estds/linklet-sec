@@ -123,7 +123,7 @@ export async function onRequest(context) {
         }
 
         // Custom slug length check
-        if (slug && (slug.length < 2 || slug.length > 10 || /.+\.[a-zA-Z]+$/.test(slug))) {
+        if (slug && (slug.length < 2 || slug.length > 20 || /.+\.[a-zA-Z]+$/.test(slug))) {
             return Response.json({ 
                 message: msgString[3]
             }, {
